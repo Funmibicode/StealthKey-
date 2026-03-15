@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>StealthKey — Password Vault</title>
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+
+  <div class="scanlines" aria-hidden="true"></div>
+  <div class="grid-bg" aria-hidden="true"></div>
+
+  <!-- ═══ LOCK SCREEN ═══ -->
+  <div id="lock-screen" class="hidden">
+    <div class="lock-card">
+      <div class="lock-logo">
+        <span class="hex">⬡</span>
+        <h1>STEALTH<span class="accent">KEY</span></h1>
+        <p class="tagline">// encrypted vault access</p>
+      </div>
+      <div class="lock-form">
+        <label for="master-password" class="field-label">MASTER PASSWORD</label>
+        <div class="input-wrap">
+          <input type="password" id="master-password" class="field"
+            placeholder="enter master key..." autocomplete="current-password"/>
+          <button class="toggle-vis" data-target="master-password">👁</button>
+        </div>
+        <button id="unlock-btn" class="btn btn-primary btn-full">
+          UNLOCK VAULT <span class="btn-bar"></span>
+        </button>
+        <p class="lock-hint">// first time? any key creates your vault</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ MAIN APP ═══ -->
+  <div id="app" class="hiddn">
+
+    <!-- Desktop sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <span class="hex">⬡</span>
+        <span class="brand-text">STEALTH<span class="accent">KEY</span></span>
+      </div>
+      <nav class="sidebar-nav">
+        <button class="nav-item active" data-view="vault">▣ VAULT</button>
+        <button class="nav-item" data-view="generator">⚙ GENERATOR</button>
+      </nav>
+      <div class="sidebar-stats">
+        <div class="stat">
+          <span class="stat-val" id="total-count">0</span>
+          <span class="stat-label">STORED</span>
+        </div>
+        <div class="stat">
+          <span class="stat-val" id="weak-count">0</span>
+          <span class="stat-label">WEAK</span>
+        </div>
+      </div>
+      <button id="lock-btn" class="btn btn-ghost lock-out-btn">⏏ LOCK</button>
+    </aside>
+
+    <!-- Main content -->
+    <main class="main-content">
+
+      <!-- VAULT VIEW -->
+      <section id="vault-view" class="view">
+        <header class="view-header">
+          <div class="header-left">
+            <h2 class="view-title">PASSWORD VAULT</h2>
+            <span class="record-badge" id="record-badge">0 records</span>
+          </div>
+          <button id="add-btn" class="btn btn-primary">
+            + ADD <span class="btn-bar"></span>
+          </button>
+        </header>
+
+        <div class="search-bar">
+          <span class="search-icon">⌕</span>
+          <input type="text" id="search-input" class="field search-field"
+            placeholder="search site, username..."/>
+          <select id="filter-select" class="filter-select">
+            <option value="all">ALL</option>
+            <option value="strong">STRONG</option>
+            <option value="weak">WEAK</option>
+          </select>
+        </div>
+
+        <div id="password-list" class="password-list">
+          <div class="empty-state" id="empty-state">
+            <div class="empty-icon">⬡</div>
+            <p>// vault is empty</p>
+            <p class="empty-sub">add your first entry to begin</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- GENERATOR VIEW -->
+      <section id="generator-view" class="view hidden">
+        <header class="view-header">
+          <h2 class="view-title">PASSWORD GENERATOR</h2>
+        </header>
+        <div class="generator-card">
+          <div class="gen-output-wrap">
+            <span id="gen-output" class="gen-output">// click generate</span>
+            <button id="copy-gen-btn" class="icon-btn" title="Copy">⎘</button>
+          </div>
+          <div class="gen-options">
+            <div class="gen-row">
+              <label class="field-label">LENGTH — <span id="len-display">16</span></label>
+              <input type="range" id="gen-length" min="8" max="15" value="" class="range-slider"/>
+            </div>
+            <div class="gen-checkboxes">
+              <label class="check-label"><input type="checkbox" id="opt-upper" checked/> UPPERCASE</label>
+              <label class="check-label"><input type="checkbox" id="opt-lower" checked/> LOWERCASE</label>
+              <label class="check-label"><input type="checkbox" id="opt-numbers" checked/> NUMBERS</label>
+              <label class="check-label"><input type="checkbox" id="opt-symbols" checked/> SYMBOLS</label>
+            </div>
+            <button id="generate-btn" class="btn btn-primary btn-full">
+              ⚙ GENERATE <span class="btn-bar"></span>
+            </button>
+          </div>
+          <div class="strength-bar-wrap">
+            <div class="strength-bar" id="strength-bar"></div>
+          </div>
+          <span class="strength-label" id="strength-label">—</span>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Mobile bottom nav -->
+    <nav class="bottom-nav">
+      <div class="brand-mobile">
+        <span class="hex">⬡</span>
+        <span class="brand-text">STEALTH<span class="accent">KEY</span></span>
+      </div>
+      <button class="nav-item active" data-view="vault">▣ VAULT</button>
+      <button class="nav-item" data-view="generator">⚙ GEN</button>
+      <button id="lock-btn-mobile" class="btn btn-ghost lock-out-btn">⏏</button>
+    </nav>
+
+  </div>
+
+  <!-- ═══ MODAL ═══ -->
+  <div id="modal-overlay" class="modal-overlay hidden">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="modal-title">ADD ENTRY</h3>
+        <button class="modal-close" id="modal-close">✕</button>
+      </div>
+      <div class="modal-body">
+        <label class="field-label">SITE / APP</label>
+        <input type="text" id="entry-site" class="field" placeholder="e.g. github.com"/>
+
+        <label class="field-label">USERNAME / EMAIL</label>
+        <input type="text" id="entry-username" class="field" placeholder="e.g. user@email.com"/>
+
+        <label class="field-label">PASSWORD</label>
+        <div class="input-wrap">
+          <input type="password" id="entry-password" class="field" placeholder="enter or generate..."/>
+          <button class="toggle-vis" id="toggle-visible">👁</button>
+        </div>
+        
+        <div id="entry-error"></div>
+        
+        <div class="strength-bar-wrap">
+          <div class="strength-bar" id="modal-strength-bar"></div>
+        </div>
+
+        <button id="use-generated-btn" class="btn btn-ghost btn-full">⚙ USE GENERATED PASSWORD</button>
+      </div>
+      <div class="modal-footer">
+        <button id="cancel-modal-btn" class="btn btn-ghost">CANCEL</button>
+        <button id="save-entry-btn" class="btn btn-primary">
+          SAVE ENTRY <span class="btn-bar"></span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ TOAST ═══ -->
+  <div id="toast" class="toast hidden"></div>
+
+  <!-- Scripts -->
+  <script src="encryption.js"></script>
+  <script src="generator.js"></script>
+  <script src="Password.js"></script>
+  <script src="Vault.js"></script>
+  <script src="ui.js"></script>
+  <script src="app.js"></script>
+
+</body>
+</html>
