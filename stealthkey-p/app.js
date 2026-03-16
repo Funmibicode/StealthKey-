@@ -26,7 +26,7 @@
 // Step 4 - on unlock, hide lock screen and show app
 // Step 5 - on add/save, read inputs → vault.add() → UI.renderList()
 // Step 6 - on delete, vault.delete() → UI.renderList()
-// Step 7 - on edit, open modal with existing data → vault.update() → UI.renderList()
+// Step 7 - on edit, open modal with existing data → → UI.renderList()
 // Step 8 - on generate, call Generator.generate() → show result in UI
 
 const vault = new Vault();
@@ -35,13 +35,14 @@ const vault = new Vault();
   UI.updateStats();
 
 let activeEntry = null;
+let cryptoKey = null;
 
 const unlockBtn = document.getElementById('unlock-btn');
 const masterPassword = document.getElementById('master-password');
 const lockScreen = document.getElementById('lock-screen');
 const app = document.getElementById('app');
 
-unlockBtn.addEventListener('click', function() {
+unlockBtn.addEventListener('click', async function() {
   const passwordValue = masterPassword.value;
 
   if (passwordValue === '') {
@@ -49,10 +50,40 @@ unlockBtn.addEventListener('click', function() {
     return;
   }
 
+  const salt = Encryption.getOrCreateSalt();
+  cryptoKey = await Encryption.deriveKey(passwordValue, salt);
+
+  // First time — create test value
+  if (!localStorage.getItem('sk_verify')) {
+    const testValue = await Encryption.encrypt('stealthkey_test', cryptoKey);
+    localStorage.setItem('sk_verify', testValue);
+  } else {
+    // Not first time — verify password is correct
+    try {
+      const verify = localStorage.getItem('sk_verify');
+      await Encryption.decrypt(verify, cryptoKey);
+    } catch(e) {
+      alert('Incorrect master password');
+      cryptoKey = null;
+      return;
+    }
+  }
+
   lockScreen.classList.add('hidden');
   app.classList.remove('hidden');
+  vault.load();
+  UI.renderList();
 });
 
+
+function lockVault() {
+  lockScreen.classList.remove('hidden');
+  app.classList.add('hidden');
+  cryptoKey = null;
+}
+
+document.getElementById('lock-btn').addEventListener('click', lockVault);
+document.getElementById('lock-btn-mobile').addEventListener('click', lockVault);
 
 
 // Add password 
@@ -75,7 +106,7 @@ document.getElementById('cancel-modal-btn').addEventListener('click', clearInput
 const saveEntry = document.getElementById('save-entry-btn');
 
 saveEntry.addEventListener('click',
-  function () {
+ async function () {
     const siteName = document.getElementById('entry-site').value;
     const userName = document.getElementById('entry-username').value;
     const password = document.getElementById('entry-password').value;
@@ -104,15 +135,17 @@ saveEntry.addEventListener('click',
       return
     }
     
-    if (activeEntry) {
-    // it's an edit
-      vault.update(activeEntry, siteName, userName, password);
-      activeEditId = null; // reset after editing
-    } else {
-    // it's a new entry
-      vault.add(siteName, userName, password);
-    }
     
+    const encryptedPassword = await Encryption.encrypt(password, cryptoKey);
+  
+    if (activeEntry) {
+      vault.update(activeEditId, siteName, userName, encryptedPassword);
+      activeEditId = null;
+    } else {
+      vault.add(siteName, userName, encryptedPassword);
+    }
+    console.log(vault.add(siteName, userName, encryptedPassword));
+    console.log(encryptedPassword);
     UI.renderList();
     UI.updateStats();
     
@@ -122,7 +155,7 @@ saveEntry.addEventListener('click',
 );
 
 //Delegation event on actions button 
-document.getElementById('password-list').addEventListener('click', function(e) {
+document.getElementById('password-list').addEventListener('click', async function(e) {
   
   const deleteBtn = e.target.closest('.delete-btn');
   const editBtn = e.target.closest('.edit-btn');
@@ -158,9 +191,9 @@ if (deleteBtn) {
   });
 
 // Cancel delete
-  deleteCancelBtn.addEventListener('click', function() {
-  activeDeleteId = null;
-  deleteOverlay.classList.add('hidden');
+  deleteCancelBtn.addEventListener('click',  function() {
+    activeDeleteId = null;
+    deleteOverlay.classList.add('hidden');
   });
 
   deleteCancelX.addEventListener('click', function() {
@@ -172,23 +205,28 @@ if (deleteBtn) {
   if (copyBtn) {
     const id = copyBtn.dataset.id;
     const entry = vault.getById(id);
-    navigator.clipboard.writeText(entry.password);
+    const decryptedPassword = await Encryption.decrypt(entry.password, cryptoKey);
+    navigator.clipboard.writeText(decryptedPassword);
   }
   
   if (editBtn) {
     const id = editBtn.dataset.id;
     const entry = vault.getById(id);
-    
-    activeEntry = id;
+  
+    activeEditId = id;
+  
+  // decrypt password before showing it
+    const decryptedPassword = await Encryption.decrypt(entry.password, cryptoKey);
+  
     document.getElementById('entry-site').value = entry.site;
     document.getElementById('entry-username').value = entry.username;
-    document.getElementById('entry-password').value = entry.password;
-
+    document.getElementById('entry-password').value = decryptedPassword;
+  
     document.getElementById('save-entry-btn').textContent = 'EDIT ENTRY';
     document.getElementById('modal-title').textContent = 'EDIT ENTRY';
-
+  
     addModal.classList.remove('hidden');
-    UI.updateStats();
+  UI.updateStats();
   }
   
   // Accordion - expand card on click
@@ -211,10 +249,20 @@ if (deleteBtn) {
   
 
   if (pwToggle) {
-  const card = pwToggle.closest('.pw-card');
-  const input = card.querySelector('input[type="password"], input[type="text"]');
-  input.type = input.type === 'password' ? 'text' : 'password';
+    const card = pwToggle.closest('.pw-card');
+    const input = card.querySelector('input[type="password"], input[type="text"]');
+  
+  if (input.type === 'password') {
+    const id = card.dataset.id;
+    const entry = vault.getById(id);
+    const decryptedPassword = await Encryption.decrypt(entry.password, cryptoKey);
+    input.value = decryptedPassword;
+    input.type = 'text';
+  } else {
+    input.value = '••••••••••••';
+    input.type = 'password';
   }
+}
   
 });
 
