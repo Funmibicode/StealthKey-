@@ -28,10 +28,10 @@ class Vault {
   // Creates a new Password entry and adds it to this.entries
   add(site, username, password) {
     
-    const id = Date.now();
+    const id = Date.now().toString();
     const newEntry = new Password(id, site, username, password);
 
-    this.entries.push(newEntry);
+    this.entries.unshift(newEntry);
 
     this._save(); 
 
@@ -66,17 +66,12 @@ class Vault {
 
   // Returns entries where site or username matches the search query
   search(query) {
-  // 1. Convert query to lowercase once to save time
   const term = query.toLowerCase();
-
-  // 2. Filter the entries
   return this.entries.filter(entry => {
-    // Check if the site OR the username contains the search term
     return entry.site.toLowerCase().includes(term) || 
            entry.username.toLowerCase().includes(term);
   });
 }
-
 
   // Converts all entries to plain objects and saves to localStorage
   _save() {

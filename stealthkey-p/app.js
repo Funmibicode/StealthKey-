@@ -30,6 +30,11 @@
 // Step 8 - on generate, call Generator.generate() → show result in UI
 
 const vault = new Vault();
+  vault.load();
+  UI.renderList();
+  UI.updateStats();
+
+let activeEntry = null;
 
 const unlockBtn = document.getElementById('unlock-btn');
 const masterPassword = document.getElementById('master-password');
@@ -53,24 +58,13 @@ unlockBtn.addEventListener('click', function() {
 // Add password 
 const addBtn = document.getElementById('add-btn');
 const addModal = document.getElementById('modal-overlay');
-const closModal = document.getElementById('modal-close');
+const closeModal = document.getElementById('modal-close');
 
-addBtn.addEventListener('click',
-  function () {
-    if (addModal) {
-      addModal.classList.remove('hidden');
-    }
-  }
-);
+UI.openModal(addBtn);
 
-closModal.addEventListener('click',
-  function () {
-    if (!addModal.classList.contains('hidden')) {
-      addModal.classList.add('hidden');
-    }
-    clearInput();
-  }
-);
+UI.closeModal(closeModal);
+
+
 
 // Cancle Button 
 document.getElementById('cancel-modal-btn').addEventListener('click', clearInput);
@@ -110,12 +104,120 @@ saveEntry.addEventListener('click',
       return
     }
     
-    console.log(vault.add(siteName,userName,password));
+    if (activeEntry) {
+    // it's an edit
+      vault.update(activeEntry, siteName, userName, password);
+      activeEditId = null; // reset after editing
+    } else {
+    // it's a new entry
+      vault.add(siteName, userName, password);
+    }
+    
+    UI.renderList();
+    UI.updateStats();
     
     clearInput();
     
   }
-)
+);
+
+//Delegation event on actions button 
+document.getElementById('password-list').addEventListener('click', function(e) {
+  
+  const deleteBtn = e.target.closest('.delete-btn');
+  const editBtn = e.target.closest('.edit-btn');
+  const copyBtn = e.target.closest('.copy-btn');
+  
+  const deleteOverlay = document.getElementById('delete-overlay');
+  const deleteConfirmBtn = document.getElementById('delete-confirm-btn');
+  const deleteCancelBtn = document.getElementById('delete-cancel-btn');
+  const deleteCancelX = document.getElementById('delete-cancel');
+
+// When delete button on card is clicked
+if (deleteBtn) {
+  const id = deleteBtn.dataset.id;
+  const entry = vault.getById(id);
+  
+  activeDeleteId = id;
+  
+  // show site name in overlay
+  document.getElementById('delete-site-name').textContent = entry.site;
+  
+  deleteOverlay.classList.remove('hidden');
+  }
+
+// Confirm delete
+  deleteConfirmBtn.addEventListener('click', function() {
+  if (activeDeleteId) {
+    vault.delete(activeDeleteId);
+    UI.renderList();
+    UI.updateStats();
+    activeDeleteId = null;
+    deleteOverlay.classList.add('hidden');
+  }
+  });
+
+// Cancel delete
+  deleteCancelBtn.addEventListener('click', function() {
+  activeDeleteId = null;
+  deleteOverlay.classList.add('hidden');
+  });
+
+  deleteCancelX.addEventListener('click', function() {
+  activeDeleteId = null;
+  deleteOverlay.classList.add('hidden');
+  
+  });
+  
+  if (copyBtn) {
+    const id = copyBtn.dataset.id;
+    const entry = vault.getById(id);
+    navigator.clipboard.writeText(entry.password);
+  }
+  
+  if (editBtn) {
+    const id = editBtn.dataset.id;
+    const entry = vault.getById(id);
+    
+    activeEntry = id;
+    document.getElementById('entry-site').value = entry.site;
+    document.getElementById('entry-username').value = entry.username;
+    document.getElementById('entry-password').value = entry.password;
+
+    document.getElementById('save-entry-btn').textContent = 'EDIT ENTRY';
+    document.getElementById('modal-title').textContent = 'EDIT ENTRY';
+
+    addModal.classList.remove('hidden');
+    UI.updateStats();
+  }
+  
+  // Accordion - expand card on click
+  const card = e.target.closest('.pw-card');
+  const pwToggle = e.target.closest('.card-pw-toggle');
+
+  if (card && !deleteBtn && !editBtn && !copyBtn && !pwToggle) {
+  const isExpanded = card.classList.contains('expanded');
+
+  // close all cards first
+  document.querySelectorAll('.pw-card').forEach(c => {
+    c.classList.remove('expanded');
+  });
+
+  // if it wasn't open, open it
+  if (!isExpanded) {
+    card.classList.add('expanded');
+  }
+  }
+  
+
+  if (pwToggle) {
+  const card = pwToggle.closest('.pw-card');
+  const input = card.querySelector('input[type="password"], input[type="text"]');
+  input.type = input.type === 'password' ? 'text' : 'password';
+  }
+  
+});
+
 
 
 
@@ -124,7 +226,10 @@ function clearInput(){
     document.getElementById('entry-site').value ='' ;
     document.getElementById('entry-username').value = '';
     document.getElementById('entry-password').value = '';
-    document.getElementById('modal-strength-bar').style.backgroundColor = "#1e3324";
+    document.getElementById('modal-strength-bar').classList.remove('weak','medium','strong');
+    document.getElementById('modal-overlay').classList.add('hidden');
+    document.getElementById('save-entry-btn').textContent = 'SAVE ENTRY';
+    document.getElementById('modal-title').textContent = 'ADD ENTRY';
 }
 
 
@@ -233,6 +338,7 @@ document.getElementById('generate-btn').addEventListener('click',
     document.getElementById('gen-output').textContent = generatedPassword;
 })
 
+//Display length value
 document.getElementById('gen-length').addEventListener('input',
     function () {
     
@@ -240,4 +346,47 @@ document.getElementById('gen-length').addEventListener('input',
     
     let lenDisplay = document.getElementById('len-display').textContent = `${length.value}`;
     
+});
+
+//Copy text to clipboard 
+
+document.getElementById('copy-gen-btn').addEventListener('click', () => {
+  const genPassword = document.getElementById('gen-output').innerText;
+  
+    navigator.clipboard.writeText(genPassword);
+});
+
+//Use generated password 
+document.getElementById('use-generated-btn').addEventListener('click', () => {
+   const generatedPassword =  Generator.generate({
+      length: 8,
+      uppercase: true,
+      lowercase: true,
+      numbers: true,
+      symbols: true,
+    });
+    
+    passwordInput.value = `${generatedPassword}`;
+    
+  
+    
+      let modalStrengthBar = document.getElementById('modal-strength-bar');
+      
+      modalStrengthBar.classList.remove('weak','medium','strong');
+      
+      modalStrengthBar.style.width = '100%';
+      modalStrengthBar.classList.add('strong');
+    
+});
+
+
+//Search and Filter button 
+const searchInput = document.getElementById('search-input');
+const strengthFilter = document.getElementById('filter-select');
+
+[searchInput, strengthFilter].forEach(el => {
+  el.addEventListener('input', () => {
+    // Re-render using the current values of both inputs
+    UI.renderList(searchInput.value.toLowerCase(), strengthFilter.value);
+  });
 });

@@ -13,7 +13,7 @@
   <div class="grid-bg" aria-hidden="true"></div>
 
   <!-- ═══ LOCK SCREEN ═══ -->
-  <div id="lock-screen" class="hidden">
+  <div id="lock-screen" >
     <div class="lock-card">
       <div class="lock-logo">
         <span class="hex">⬡</span>
@@ -21,22 +21,25 @@
         <p class="tagline">// encrypted vault access</p>
       </div>
       <div class="lock-form">
+        <label for="user-email" class="field-label">EMAIL</label>
+        <input type="email"  id="user-email"  class="field" placeholder="enter your email..." autocomplete="email"/><br />
         <label for="master-password" class="field-label">MASTER PASSWORD</label>
         <div class="input-wrap">
           <input type="password" id="master-password" class="field"
             placeholder="enter master key..." autocomplete="current-password"/>
           <button class="toggle-vis" data-target="master-password">👁</button>
         </div>
+        
         <button id="unlock-btn" class="btn btn-primary btn-full">
           UNLOCK VAULT <span class="btn-bar"></span>
         </button>
-        <p class="lock-hint">// first time? any key creates your vault</p>
+        <p class="lock-hint">//login with email & password OR <a href="#signin">Sign In</a></p>
       </div>
     </div>
   </div>
 
   <!-- ═══ MAIN APP ═══ -->
-  <div id="app" class="hiddn">
+  <div id="app" class="hidden">
 
     <!-- Desktop sidebar -->
     <aside class="sidebar">
@@ -84,6 +87,7 @@
             <option value="all">ALL</option>
             <option value="strong">STRONG</option>
             <option value="weak">WEAK</option>
+            <option value="medium">Medium</option>
           </select>
         </div>
 
@@ -178,6 +182,31 @@
         </button>
       </div>
     </div>
+  </div>
+  <!-- DELETE CONFIRMATION OVERLAY -->
+  <div id="delete-overlay" class="modal-overlay hidden">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>DELETE ENTRY</h3>
+      <button class="modal-close" id="delete-cancel">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-family: var(--mono); font-size: 0.82rem; color: var(--text-dim);">
+        // are you sure you want to delete
+      </p>
+      <p id="delete-site-name" style="font-family: var(--mono); font-size: 1rem; color: var(--red);">
+      </p>
+      <p style="font-family: var(--mono); font-size: 0.72rem; color: var(--text-muted);">
+        // this action cannot be undone
+      </p>
+    </div>
+    <div class="modal-footer">
+      <button id="delete-cancel-btn" class="btn btn-ghost">CANCEL</button>
+      <button id="delete-confirm-btn" class="btn btn-primary" style="background: var(--red); border-color: var(--red);">
+        DELETE <span class="btn-bar"></span>
+      </button>
+    </div>
+  </div>
   </div>
 
   <!-- ═══ TOAST ═══ -->

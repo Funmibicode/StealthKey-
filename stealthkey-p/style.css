@@ -369,6 +369,10 @@ select {
   text-align: center;
 }
 
+.lock-hint a{
+  color: var(--green);
+}
+
 /* ══════════════════════════════════════
    APP SHELL — MOBILE FIRST
 ══════════════════════════════════════ */
@@ -688,6 +692,48 @@ select {
   display: flex;
   align-items: center;
   gap: 2px;
+}
+
+.pw-card-details {
+  display: none;
+  width: 100%;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  gap: 8px;
+  flex-direction: column;
+}
+
+.pw-card.expanded .pw-card-details {
+  display: flex;
+  
+}
+
+.pw-card {
+  flex-wrap: wrap;
+  cursor: pointer;
+  
+}
+
+.detail-password {
+  color: var(--green);
+  word-break: break-all;
+}
+
+.detail-label {
+  color: var(--text-muted);
+  font-size: 0.62rem;
+  margin-bottom: 2px;
+}
+
+.pw-card-details .input-wrap input{
+  background: var(--surface);
+  color: var(--green);
+  border: none;
+  outline: none;
 }
 
 /* ══════════════════════════════════════
@@ -1069,7 +1115,7 @@ select {
   }
 
   .card-actions {
-    opacity: 0;
+    opacity: 1;
     transition: opacity var(--transition);
   }
 

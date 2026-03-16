@@ -22,23 +22,89 @@
 const UI = {
 
   // Loops through vault entries and renders password cards on screen
-  renderList(vault, query, filter) {
-    // your code here
-  },
+  renderList(searchTerm = '', filterStrength = 'all') {
+  const list = document.getElementById('password-list');
+  const emptyState = document.getElementById('empty-state');
 
+  // clear old cards first
+  list.querySelectorAll('.pw-card').forEach(card => card.remove());
+
+  // get filtered results
+  const results = vault.search(searchTerm).filter(entry =>
+    filterStrength === 'all' || entry.strength === filterStrength
+  );
+  
+  console.log(results);
+  console.log(searchTerm);
+  console.log(filterStrength);
+
+  if (results.length === 0) {
+    emptyState.classList.remove('hidden');
+    return;
+  }
+
+  emptyState.classList.add('hidden');
+
+  results.forEach(entry => {
+    const card = this.buildCard(entry);
+    list.appendChild(card);
+  });
+},
   // Builds and returns a single password card HTML element
   buildCard(entry) {
-    // your code here
-  },
+    const card = document.createElement('div');
+    card.className = 'pw-card';
+    card.dataset.id = entry.id;
+
+    card.innerHTML = `
+      <div class="card-site-icon">${entry.site[0]}</div>
+      <div class="card-info">
+      <span class="card-site">${entry.site}</span>
+      <span class="card-username">${entry.username}</span>
+      </div>
+      <div class="card-right">
+      <div class="card-strength-dot ${entry.strength}"></div>
+      <div class="card-actions">
+        <button class="icon-btn copy-btn" data-id="${entry.id}">⎘</button>
+        <button class="icon-btn edit-btn" data-id="${entry.id}">✎</button>
+        <button class="icon-btn danger delete-btn" data-id="${entry.id}">✕</button>
+      </div>
+      </div>
+      
+      <div class="pw-card-details">
+        <div>
+        <p class="detail-label">PASSWORD</p>
+        <div class="input-wrap">
+        <input type="password" value="${entry.password}" readonly id="pw-field-${entry.id}"/>
+        <button class="toggle-vis card-pw-toggle">👁</button>
+        </div>
+      </div>
+      <div>
+        <p class="detail-label">CREATED</p>
+        <p>${new Date(entry.createdAt).toLocaleDateString()}</p>
+      </div>
+    
+  `;
+  
+
+  return card;
+}, 
 
   // Opens the modal for adding or editing an entry
   openModal(entry) {
-    // your code here
+    entry.addEventListener('click',
+      function () {
+        if (addModal) {
+          addModal.classList.remove('hidden');
+    }
+  }
+);
+
   },
 
   // Closes the modal
-  closeModal() {
-    // your code here
+  closeModal(closeBtn) {
+    closeBtn.addEventListener('click', clearInput);
   },
 
   // Shows a short notification message at the bottom of the screen
@@ -93,8 +159,14 @@ const UI = {
   },
 
   // Updates the total stored and weak count in the sidebar
-  updateStats(vault) {
-    // your code here
+  updateStats() {
+    document.getElementById('total-count').textContent = vault.entries.length;
+    document.getElementById('record-badge').textContent = vault.entries.length + ' records';
+    document.getElementById('weak-count').textContent = vault.entries.filter(entry => entry.strength !== 'strong').length;
   },
-
 }
+
+
+
+
+
