@@ -34,9 +34,7 @@ const UI = {
     filterStrength === 'all' || entry.strength === filterStrength
   );
   
-  console.log(results);
-  console.log(searchTerm);
-  console.log(filterStrength);
+  
 
   if (results.length === 0) {
     emptyState.classList.remove('hidden');
