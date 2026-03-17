@@ -30,11 +30,15 @@
 // Step 8 - on generate, call Generator.generate() → show result in UI
 
 const vault = new Vault();
-  vault.load();
-  UI.renderList();
+  async function init() {
+    await vault.load();
+    UI.renderList();
+  }
+
+init();
   UI.updateStats();
 
-let activeEntry = null;
+let activeEditId = null;
 let cryptoKey = null;
 
 const unlockBtn = document.getElementById('unlock-btn');
@@ -43,36 +47,53 @@ const lockScreen = document.getElementById('lock-screen');
 const app = document.getElementById('app');
 
 unlockBtn.addEventListener('click', async function() {
+  const email = document.getElementById('user-email').value;
   const passwordValue = masterPassword.value;
 
-  if (passwordValue === '') {
-    alert('Please enter your master password');
+  if (email === '' || passwordValue === '') {
+    alert('Please fill in all fields');
     return;
   }
 
-  const salt = Encryption.getOrCreateSalt();
-  cryptoKey = await Encryption.deriveKey(passwordValue, salt);
+  if (isRegisterMode) {
+    // REGISTER
+    const { data, error } = await supabaseClient.auth.signUp({
+      email: email,
+      password: passwordValue
+    });
 
-  // First time — create test value
-  if (!localStorage.getItem('sk_verify')) {
-    const testValue = await Encryption.encrypt('stealthkey_test', cryptoKey);
-    localStorage.setItem('sk_verify', testValue);
-  } else {
-    // Not first time — verify password is correct
-    try {
-      const verify = localStorage.getItem('sk_verify');
-      await Encryption.decrypt(verify, cryptoKey);
-    } catch(e) {
-      alert('Incorrect master password');
-      cryptoKey = null;
+    if (error) {
+      alert(error.message);
       return;
     }
-  }
 
-  lockScreen.classList.add('hidden');
-  app.classList.remove('hidden');
-  vault.load();
-  UI.renderList();
+    alert('Account created! You can now unlock your vault');
+    isRegisterMode = false;
+    document.getElementById('confirm-password-wrap').classList.add('hidden');
+    document.getElementById('unlock-btn').textContent = 'UNLOCK VAULT';
+    document.getElementById('auth-toggle-link').textContent = 'Create an account';
+
+  } else {
+    // LOGIN
+    const { data, error } = await supabaseClient.auth.signInWithPassword({
+      email: email,
+      password: passwordValue
+    });
+
+    if (error) {
+      alert(error.message);
+      return;
+    }
+
+    // derive encryption key from password
+    const salt = Encryption.getOrCreateSalt();
+    cryptoKey = await Encryption.deriveKey(passwordValue, salt);
+
+    lockScreen.classList.add('hidden');
+    app.classList.remove('hidden');
+    await vault.load();
+    UI.renderList();
+  }
 });
 
 
@@ -145,11 +166,11 @@ saveEntry.addEventListener('click',
     
     const encryptedPassword = await Encryption.encrypt(password, cryptoKey);
   
-    if (activeEntry) {
-      vault.update(activeEditId, siteName, userName, encryptedPassword);
+    if (activeEditId) {
+      await vault.update(activeEditId, siteName, userName, encryptedPassword);
       activeEditId = null;
     } else {
-      vault.add(siteName, userName, encryptedPassword);
+     await vault.add(siteName, userName, encryptedPassword);
     }
     
     UI.renderList();
@@ -186,9 +207,9 @@ if (deleteBtn) {
   }
 
 // Confirm delete
-  deleteConfirmBtn.addEventListener('click', function() {
+  deleteConfirmBtn.addEventListener('click', async function() {
   if (activeDeleteId) {
-    vault.delete(activeDeleteId);
+    await vault.delete(activeDeleteId);
     UI.renderList();
     UI.updateStats();
     activeDeleteId = null;
@@ -479,4 +500,18 @@ const strengthFilter = document.getElementById('filter-select');
     // Re-render using the current values of both inputs
     UI.renderList(searchInput.value.toLowerCase(), strengthFilter.value);
   });
+});
+
+
+let isRegisterMode = false;
+
+document.getElementById('auth-toggle-link').addEventListener('click', function() {
+  isRegisterMode = !isRegisterMode;
+  
+  document.getElementById('confirm-password-wrap').classList.toggle('hidden');
+  document.getElementById('unlock-btn').textContent = isRegisterMode ? 'CREATE VAULT' : 'UNLOCK VAULT';
+  document.getElementById('auth-toggle-link').textContent = isRegisterMode ? 'Sign in instead' : 'Create an account';
+  
+  document.querySelector('.forget').classList.toggle('hidden');
+  document.getElementById('reset-btn').classList.toggle('hidden');
 });

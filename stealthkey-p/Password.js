@@ -43,14 +43,18 @@ class Password {
   // Rebuilds a Password instance from a plain object
   // Used by Vault.load() after reading from localStorage
   static fromJSON(obj) {
-    return new Password (
+    const entry = new Password (
       obj.id,
       obj.site,
       obj.username,
       obj.password,
       obj.createdAt 
     );
+    entry.createdAt = obj.created_at || obj.createdAt;
+    
+    return entry
   }
+  
 
   // Checks how strong a password is
   // Returns "weak", "medium", or "strong"

@@ -22,20 +22,25 @@
       </div>
       <div class="lock-form">
         <label for="user-email" class="field-label">EMAIL</label>
-        <input type="email"  id="user-email"  class="field" placeholder="enter your email..." autocomplete="email"/><br />
+        <input type="email"  id="user-email"  class="field" placeholder="enter your email..." autocomplete="email"/>
         <label for="master-password" class="field-label">MASTER PASSWORD</label>
         <div class="input-wrap">
           <input type="password" id="master-password" class="field"
             placeholder="enter master key..." autocomplete="current-password"/>
           <button class="toggle-vis" data-target="master-password">👁</button>
         </div>
-        
+        <div id="confirm-password-wrap" class="hidden">
+        <label class="field-label">CONFIRM PASSWORD</label>
+        <div class="input-wrap">
+          <input type="password" id="confirm-password" class="field" placeholder="confirm master key..."/>
+          </div>
+        </div>
         <button id="unlock-btn" class="btn btn-primary btn-full">
           UNLOCK VAULT <span class="btn-bar"></span>
         </button>
-        <p class="lock-hint">//login with email & password OR <a href="#signin">Sign In</a></p>
-        <p class="lock-hint">// forgot your password? all data will be lost on reset</p>
-        <button id="reset-btn" class="btn btn-ghost btn-full">RESET VAULT</button>
+        <p class="lock-hint">// new here? <span id="auth-toggle-link" style="color: var(--green); cursor: pointer;">Create an account</span></p>
+        <p class="lock-hint forget">// forgot your password? all data will be lost on reset</p>
+        <button id="reset-btn" class="btn btn-ghost btn-full ">RESET VAULT</button>
       </div>
     </div>
   </div>
