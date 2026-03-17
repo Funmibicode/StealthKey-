@@ -41,17 +41,25 @@ const Generator = {
     let generatedPassword = "";
 
     // 3. Loop through the requested length
-    for (let i = 0; i < length; i++) {
+    /*for (let i = 0; i < length; i++) {
       // Create a 32-bit unsigned integer array to store a random number
-      const randomValues = new Uint32Array(1);
-      window.crypto.getRandomValues(randomValues);
       
+      const randomValues = new Uint32Array(length);
+      window.crypto.getRandomValues(randomValues);
+    
       // Get a random index within the range of our availableChars
       // (Using modulo % ensures the number fits our pool size)
       const randomIndex = randomValues[0] % availableChars.length;
       
       generatedPassword += availableChars[randomIndex];
-    }
+      
+    }*/
+  const randomValues = new Uint32Array(length);
+  window.crypto.getRandomValues(randomValues);
+      
+  generatedPassword = Array.from(randomValues).map(
+      value =>  availableChars[value % availableChars.length]
+    ).join('');
 
     return generatedPassword;
   }

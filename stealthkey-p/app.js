@@ -341,11 +341,11 @@ document.getElementById('generate-btn').addEventListener('click',
     
     
     
-    let width = '0%';
-    let checked = 0;
+    let width = 0;
+    //let checked = 0;
     strengthLabel.textContent ='';
     
-    if (uppercase.checked) {
+    /*if (uppercase.checked) {
       checked++;
     } if (lowercase.checked) {
       checked++;
@@ -353,43 +353,53 @@ document.getElementById('generate-btn').addEventListener('click',
       checked++;
     } if (symbols.checked) {
       checked++;
-    }
+    }*/
     
+    const genOutput = document.getElementById('gen-output');
+    genOutput.textContent = '';
+    
+    
+    
+    const generatedPassword = Generator.generate({
+        length: length,
+        uppercase: uppercase.checked,
+        lowercase: lowercase.checked,
+        numbers: numbers.checked,
+        symbols: symbols.checked,
+      });
+
+    genOutput.textContent = generatedPassword;
+    
+    let genOutputText = genOutput.innerText;
     
     strengthBar.classList.remove('weak','medium','strong');
     
-    if(checked === 4){
-      width = '100%';
-      strengthBar.classList.add('strong');
-      strengthLabel.textContent = 'Strong';
-    }
-    else if(checked === 3) {
-      width = '66%';
-      strengthBar.classList.add('medium');
-      strengthLabel.textContent = 'Medium';
-    }
-    else if (checked === 2) {
-      width = '33%';
-      strengthBar.classList.add('weak');  
-      strengthLabel.textContent = 'Weak';
-    }
-    else if (checked === 1) {
-      width = '5%';
+    if(/[A-Z]/.test(genOutputText)){
+      width += 25;
       strengthBar.classList.add('weak');
       strengthLabel.textContent = 'Password is too weak to use';
+     
+    }
+    if(/[a-z]/.test(genOutputText)) {
+      width += 25;
+      strengthBar.classList.add('weak');
+      strengthLabel.textContent = 'Weak';
+    }
+    if (/[0-9]/.test(genOutputText)) {
+      width += 25;
+      strengthBar.classList.add('medium');  
+      strengthLabel.textContent = 'Medium';
+    }
+    if (/[!@#$%^&*]/.test(genOutputText)) {
+      width += 25;
+       strengthBar.classList.add('strong');
+      strengthLabel.textContent = 'Strong';
     }
     
-    strengthBar.style.width = width;
     
-   const generatedPassword =  Generator.generate({
-      length: length,
-      uppercase: uppercase.checked,
-      lowercase: lowercase.checked,
-      numbers: numbers.checked,
-      symbols: symbols.checked,
-    });
+    strengthBar.style.width = `${width}%`;
     
-    document.getElementById('gen-output').textContent = generatedPassword;
+   
 })
 
 //Display length value
@@ -428,8 +438,34 @@ document.getElementById('use-generated-btn').addEventListener('click', () => {
       
       modalStrengthBar.classList.remove('weak','medium','strong');
       
-      modalStrengthBar.style.width = '100%';
-      modalStrengthBar.classList.add('strong');
+      let genOutputText = passwordInput.value;
+      let width = 0;
+    
+    
+    
+    if(/[A-Z]/.test(genOutputText)){
+      width += 25;
+      modalStrengthBar.classList.add('weak');
+      
+    }
+    if(/[a-z]/.test(genOutputText)) {
+      width += 25;
+      modalStrengthBar.classList.add('medium');
+      
+    }
+    if (/[0-9]/.test(genOutputText)) {
+      width += 25;
+      modalStrengthBar.classList.add('medium');  
+      
+    }
+    if (/[!@#$%^&*]/.test(genOutputText)) {
+      width += 25;
+       modalStrengthBar.classList.add('strong');
+    }
+    
+    
+    modalStrengthBar.style.width = `${width}%`;
+    
     
 });
 
