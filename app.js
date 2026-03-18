@@ -60,8 +60,12 @@ unlockBtn.addEventListener('click', async function() {
     // REGISTER
     const { data, error } = await supabaseClient.auth.signUp({
       email: email,
-      password: passwordValue
+      password: passwordValue,
+      options: {
+        emailRedirectTo: 'https://stealthkey.netlify.app'
+      }
     });
+  
 
     if (error) {
       showAuthError(error.message);
