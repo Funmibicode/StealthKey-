@@ -373,6 +373,28 @@ select {
   color: var(--green);
 }
 
+.auth-toast {
+  position: fixed;
+  top: -100px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--surface);
+  border: 1px solid var(--red);
+  border-top: 3px solid var(--red);
+  border-radius: var(--radius);
+  padding: 12px 24px;
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  color: var(--red);
+  z-index: 400;
+  transition: top 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+  white-space: nowrap;
+}
+
+.auth-toast.show {
+  top: 20px;
+}
+
 /* ══════════════════════════════════════
    APP SHELL — MOBILE FIRST
 ══════════════════════════════════════ */

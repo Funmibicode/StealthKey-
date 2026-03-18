@@ -64,11 +64,11 @@ unlockBtn.addEventListener('click', async function() {
     });
 
     if (error) {
-      alert(error.message);
+      showAuthError(error.message);
       return;
     }
 
-    alert('Account created! You can now unlock your vault');
+    showAuthError('Account created! You can now unlock your vault');
     isRegisterMode = false;
     document.getElementById('confirm-password-wrap').classList.add('hidden');
     document.getElementById('unlock-btn').textContent = 'UNLOCK VAULT';
@@ -82,7 +82,7 @@ unlockBtn.addEventListener('click', async function() {
     });
 
     if (error) {
-      alert(error.message);
+      showAuthError(error.message);
       return;
     }
 
@@ -290,7 +290,7 @@ if (deleteBtn) {
     input.value = decryptedPassword;
     input.type = 'text';
   } else {
-    input.value = '••••••••••••';
+    input.value = '•••••••••';
     input.type = 'password';
   }
 }
@@ -483,3 +483,19 @@ document.getElementById('auth-toggle-link').addEventListener('click', function()
   document.querySelector('.forget').classList.toggle('hidden');
   document.getElementById('reset-btn').classList.toggle('hidden');
 });
+
+
+
+function showAuthError(message) {
+  const toast = document.getElementById('auth-toast');
+  const msg = document.getElementById('auth-toast-msg');
+  
+  msg.textContent = message;
+  toast.classList.remove('hidden');
+  toast.classList.add('show');
+  
+  setTimeout(() => {
+    toast.classList.remove('show');
+    setTimeout(() => toast.classList.add('hidden'), 400);
+  }, 3000);
+}
