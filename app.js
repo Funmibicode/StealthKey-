@@ -33,11 +33,12 @@ const vault = new Vault();
   async function init() {
     await vault.load();
     UI.renderList();
+    UI.updateStats();
+
   }
 
 init();
-  UI.updateStats();
-
+  
 let activeEditId = null;
 let cryptoKey = null;
 
@@ -164,13 +165,14 @@ saveEntry.addEventListener('click',
     }
     
     
+    const strength = Password.score(password); // score BEFORE encrypting
     const encryptedPassword = await Encryption.encrypt(password, cryptoKey);
   
     if (activeEditId) {
-      await vault.update(activeEditId, siteName, userName, encryptedPassword);
+      await vault.update(activeEditId, siteName, userName, encryptedPassword,strength);
       activeEditId = null;
     } else {
-     await vault.add(siteName, userName, encryptedPassword);
+     await vault.add(siteName, userName, encryptedPassword,strength);
     }
     
     UI.renderList();
@@ -180,6 +182,8 @@ saveEntry.addEventListener('click',
     
   }
 );
+
+
 
 //Delegation event on actions button 
 document.getElementById('password-list').addEventListener('click', async function(e) {
@@ -393,32 +397,16 @@ document.getElementById('generate-btn').addEventListener('click',
     
     let genOutputText = genOutput.innerText;
     
-    strengthBar.classList.remove('weak','medium','strong');
-    
-    if(/[A-Z]/.test(genOutputText)){
-      width += 25;
-      strengthBar.classList.add('weak');
-      strengthLabel.textContent = 'Password is too weak to use';
-     
-    }
-    if(/[a-z]/.test(genOutputText)) {
-      width += 25;
-      strengthBar.classList.add('weak');
-      strengthLabel.textContent = 'Weak';
-    }
-    if (/[0-9]/.test(genOutputText)) {
-      width += 25;
-      strengthBar.classList.add('medium');  
-      strengthLabel.textContent = 'Medium';
-    }
-    if (/[!@#$%^&*]/.test(genOutputText)) {
-      width += 25;
-       strengthBar.classList.add('strong');
-      strengthLabel.textContent = 'Strong';
-    }
-    
-    
-    strengthBar.style.width = `${width}%`;
+
+  const passwordScore = Password.score(generatedPassword);
+    strengthBar.classList.remove('weak', 'medium', 'strong');
+    strengthBar.classList.add(passwordScore);
+
+  const widths = { weak: '33%', medium: '66%', strong: '100%' };
+  strengthBar.style.width = widths[passwordScore];
+
+  const labels = { weak: 'Weak', medium: 'Medium', strong: 'Strong' };
+  strengthLabel.textContent = labels[passwordScore];
     
    
 })
@@ -459,34 +447,14 @@ document.getElementById('use-generated-btn').addEventListener('click', () => {
       
       modalStrengthBar.classList.remove('weak','medium','strong');
       
-      let genOutputText = passwordInput.value;
-      let width = 0;
-    
-    
-    
-    if(/[A-Z]/.test(genOutputText)){
-      width += 25;
-      modalStrengthBar.classList.add('weak');
-      
-    }
-    if(/[a-z]/.test(genOutputText)) {
-      width += 25;
-      modalStrengthBar.classList.add('medium');
-      
-    }
-    if (/[0-9]/.test(genOutputText)) {
-      width += 25;
-      modalStrengthBar.classList.add('medium');  
-      
-    }
-    if (/[!@#$%^&*]/.test(genOutputText)) {
-      width += 25;
-       modalStrengthBar.classList.add('strong');
-    }
-    
-    
-    modalStrengthBar.style.width = `${width}%`;
-    
+      passwordInput.value = generatedPassword;
+
+  const passwordScore = Password.score(generatedPassword);
+    modalStrengthBar.classList.remove('weak', 'medium', 'strong');
+    modalStrengthBar.classList.add(passwordScore);
+
+  const widths = { weak: '33%', medium: '66%', strong: '100%' };
+    modalStrengthBar.style.width = widths[passwordScore];
     
 });
 

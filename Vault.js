@@ -38,7 +38,7 @@ class Vault {
     return newEntry;
   }*/
   
-  async add(site, username, password) {
+  async add(site, username, password,strength) {
     const user = await supabaseClient.auth.getUser();
     const userId = user.data.user.id;
 
@@ -49,7 +49,7 @@ class Vault {
         site: site,
         username: username,
         password: password,
-        strength: Password.score(password),
+        strength: strength,
       })
     .select(); // returns the inserted row with its uuid
 
@@ -84,14 +84,14 @@ class Vault {
     return passwordEntry;
   }*/
   
-  async update(id, site, username, password) {
-  const passwordEntry = this.getById(id);
+  async update(id, site, username, password, strength) {
+    const passwordEntry = this.getById(id);
 
-  if (passwordEntry) {
-    passwordEntry.site = site;
-    passwordEntry.username = username;
-    passwordEntry.password = password;
-    passwordEntry.strength = Password.score(password);
+    if (passwordEntry) {
+      passwordEntry.site = site;
+      passwordEntry.username = username;
+      passwordEntry.password = password;
+      passwordEntry.strength = strength;
 
     // Update localStorage
     localStorage.setItem('passCodes', JSON.stringify(this.entries.map(e => e.toJSON())));
@@ -210,7 +210,7 @@ async delete(id) {
       .select('*')
       .eq('user_id', userId)
       .order('created_at', { ascending: false });
-console.log(data);
+
     if (error) throw error;
 
     // 2. Save fetched data to localStorage as cache

@@ -16,14 +16,14 @@
 
 class Password {
 
-  constructor(id, site, username, password, createdAt = null) {
+  constructor(id, site, username, password, createdAt = null, strength = null) {
+    
     this.id = id;
     this.site = site;
     this.username = username;
     this.password = password;
-    this.strength = Password.score(password);
+    this.strength = strength || Password.score(password);
     this.createdAt = createdAt || Date.now();
-    
   }
 
   // Converts this Password instance to a plain object
@@ -43,18 +43,16 @@ class Password {
   // Rebuilds a Password instance from a plain object
   // Used by Vault.load() after reading from localStorage
   static fromJSON(obj) {
-    const entry = new Password (
+    const entry = new Password(
       obj.id,
       obj.site,
       obj.username,
       obj.password,
-      obj.createdAt 
+      obj.createdAt || obj.created_at,
+      obj.strength
     );
-    entry.createdAt = obj.created_at || obj.createdAt;
-    
-    return entry
+    return entry;
   }
-  
 
   // Checks how strong a password is
   // Returns "weak", "medium", or "strong"
