@@ -11,7 +11,7 @@ A secure, browser-based password manager built with vanilla JavaScript, Supabase
 
 ## 🌐 Live Demo
 
-👉 [stealthykey.netlify.app](https://stealthykey.netlify.app)
+👉 [stealth-key.vercel.app](https://stealth-key.vercel.app)
 
 ---
 
