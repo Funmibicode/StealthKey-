@@ -149,12 +149,12 @@ document.getElementById('lock-btn').addEventListener('click', lockVault);
 document.getElementById('lock-btn-mobile').addEventListener('click', lockVault);
 
 // ── RESET ──
-document.getElementById('reset-btn').addEventListener('click', function() {
+/*document.getElementById('reset-btn').addEventListener('click', function() {
   if (confirm('This will delete all saved passwords. Are you sure?')) {
     localStorage.clear();
     location.reload();
   }
-});
+});*/
 
 // ── AUTH TOGGLE ──
 document.getElementById('auth-toggle-link').addEventListener('click', function() {
