@@ -58,6 +58,7 @@ unlockBtn.addEventListener('click', async function() {
     }
 
     lockScreen.classList.add('hidden');
+    startInactivityTimer();
     app.classList.remove('hidden');
     await vault.load();
     UI.renderList();
@@ -116,6 +117,30 @@ unlockBtn.addEventListener('click', async function() {
   }
 });
 
+// ── AUTO LOCK ──
+let inactivityTimer = null;
+const INACTIVITY_LIMIT = 5 * 60 * 1000; // 5 minutes in milliseconds
+
+function resetInactivityTimer() {
+  clearTimeout(inactivityTimer);
+  inactivityTimer = setTimeout(() => {
+    lockVault();
+  }, INACTIVITY_LIMIT);
+}
+
+function startInactivityTimer() {
+  ['click', 'keydown', 'scroll', 'touchstart'].forEach(event => {
+    document.addEventListener(event, resetInactivityTimer);
+  });
+  resetInactivityTimer();
+}
+
+function stopInactivityTimer() {
+  clearTimeout(inactivityTimer);
+  ['click', 'keydown', 'scroll', 'touchstart'].forEach(event => {
+    document.removeEventListener(event, resetInactivityTimer);
+  });
+}
 
 //Google auth
 document.getElementById('google-btn').addEventListener('click', async function() {
@@ -134,6 +159,7 @@ document.getElementById('google-btn').addEventListener('click', async function()
 // ── LOCK ──
 function lockVault() {
   lockScreen.classList.remove('hidden');
+  stopInactivityTimer();
   app.classList.add('hidden');
   cryptoKey = null;
   existingSession = null;
